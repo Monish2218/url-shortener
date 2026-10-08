@@ -40,4 +40,55 @@ router.post("/", async (req, res) => {
     });
 });
 
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+
+  const result = await pool.query(
+    `
+      SELECT id, short_code, original_url, created_at, expires_at
+      FROM urls
+      WHERE id = $1
+    `,
+    [id],
+  );
+
+  if (result.rows.length === 0) {
+    return res.status(404).json({
+      error: "URL not found",
+    });
+  }
+
+  const url = result.rows[0];
+
+  return res.status(200).json({
+    id: url.id,
+    shortCode: url.short_code,
+    shortUrl: `http://localhost:3000/${url.short_code}`,
+    originalUrl: url.original_url,
+    createdAt: url.created_at,
+    expiresAt: url.expires_at,
+  });
+});
+
+router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
+
+  const result = await pool.query(
+    `
+      DELETE FROM urls
+      WHERE id = $1
+      RETURNING id
+    `,
+    [id],
+  );
+
+  if (result.rows.length === 0) {
+    return res.status(404).json({
+      error: "URL not found",
+    });
+  }
+
+  return res.status(204).send();
+});
+
 export default router;
