@@ -23,16 +23,41 @@ router.post("/", async (req, res) => {
       });
     }
 
-    const shortCode = generateShortCode();
+    const MAX_INSERT_ATTEMPTS = 5;
 
-    const dbResult = await pool.query(
-        `
-        INSERT INTO urls (short_code, original_url, expires_at)
-        VALUES ($1, $2, $3)
-        RETURNING id, short_code, original_url, created_at, expires_at
-        `,
-        [shortCode, originalUrl, expiresAt ?? null],
-    );
+    let dbResult;
+
+    for (let attempt = 0; attempt < MAX_INSERT_ATTEMPTS; attempt++) {
+      const shortCode = generateShortCode();
+
+      try {
+        dbResult = await pool.query(
+          `
+            INSERT INTO urls (short_code, original_url, expires_at)
+            VALUES ($1, $2, $3)
+            RETURNING id, short_code, original_url, created_at, expires_at, click_count
+          `,
+          [shortCode, originalUrl, expiresAt ?? null],
+        );
+
+        break;
+      } catch (error) {
+        if (
+          error &&
+          typeof error === "object" &&
+          "code" in error &&
+          error.code === "23505"
+        ) {
+          continue;
+        }
+
+        throw error;
+      }
+    }
+
+    if (!dbResult) {
+      throw new Error("Failed to generate a unique short code");
+    }
 
     const url = dbResult.rows[0];
 
