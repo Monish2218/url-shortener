@@ -15,17 +15,23 @@ router.post("/", async (req, res) => {
         });
     }
 
-    const { originalUrl } = result.data;
+    const { originalUrl, expiresAt } = result.data;
+    
+    if (expiresAt && new Date(expiresAt) <= new Date()) {
+      return res.status(400).json({
+        error: "Expiration time must be in the future",
+      });
+    }
 
     const shortCode = generateShortCode();
 
     const dbResult = await pool.query(
         `
-        INSERT INTO urls (short_code, original_url)
-        VALUES ($1, $2)
+        INSERT INTO urls (short_code, original_url, expires_at)
+        VALUES ($1, $2, $3)
         RETURNING id, short_code, original_url, created_at, expires_at
         `,
-        [shortCode, originalUrl],
+        [shortCode, originalUrl, expiresAt ?? null],
     );
 
     const url = dbResult.rows[0];
