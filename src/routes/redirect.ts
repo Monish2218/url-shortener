@@ -8,9 +8,11 @@ router.get("/:shortCode", async (req, res) => {
 
   const result = await pool.query(
     `
-      SELECT original_url, expires_at
-      FROM urls
+      UPDATE urls
+      SET click_count = click_count + 1
       WHERE short_code = $1
+        AND (expires_at IS NULL OR expires_at > NOW())
+      RETURNING original_url
     `,
     [shortCode],
   );
@@ -21,15 +23,7 @@ router.get("/:shortCode", async (req, res) => {
     });
   }
 
-  const url = result.rows[0];
-
-  if (url.expires_at && new Date(url.expires_at) <= new Date()) {
-    return res.status(410).json({
-      error: "Short URL has expired",
-    });
-  }
-
-  return res.redirect(302, url.original_url);
+  return res.redirect(302, result.rows[0].original_url);
 });
 
 export default router;

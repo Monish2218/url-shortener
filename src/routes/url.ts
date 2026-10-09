@@ -16,7 +16,7 @@ router.post("/", async (req, res) => {
     }
 
     const { originalUrl, expiresAt } = result.data;
-    
+
     if (expiresAt && new Date(expiresAt) <= new Date()) {
       return res.status(400).json({
         error: "Expiration time must be in the future",
@@ -51,7 +51,7 @@ router.get("/:id", async (req, res) => {
 
   const result = await pool.query(
     `
-      SELECT id, short_code, original_url, created_at, expires_at
+      SELECT id, short_code, original_url, created_at, expires_at, click_count
       FROM urls
       WHERE id = $1
     `,
@@ -73,6 +73,7 @@ router.get("/:id", async (req, res) => {
     originalUrl: url.original_url,
     createdAt: url.created_at,
     expiresAt: url.expires_at,
+    clickCount: url.click_count,
   });
 });
 
