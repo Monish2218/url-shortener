@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import request from "supertest";
 import app from "../src/app.js";
 import pool from "../src/db.js";
+import { cleanupUrl } from "./helpers/db.js";
 
 describe("GET /:shortCode", () => {
   it("redirects an active short URL", async () => {
@@ -33,7 +34,7 @@ describe("GET /:shortCode", () => {
 
     expect(result.rows[0].click_count).toBe("1");
 
-    await pool.query("DELETE FROM urls WHERE id = $1", [id]);
+    await cleanupUrl(id);;
   });
 
   it("returns 410 for an expired short URL", async () => {
@@ -63,7 +64,7 @@ describe("GET /:shortCode", () => {
 
     expect(result.rows[0].click_count).toBe("0");
 
-    await pool.query("DELETE FROM urls WHERE id = $1", [id]);
+    await cleanupUrl(id);
   });
 
   it("returns 404 for a nonexistent short URL", async () => {

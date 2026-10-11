@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import request from "supertest";
 import app from "../src/app.js";
 import pool from "../src/db.js";
+import { cleanupUrl } from "./helpers/db.js";
 
 describe("POST /api/urls", () => {
   it("creates a short URL", async () => {
@@ -40,10 +41,7 @@ describe("POST /api/urls", () => {
       click_count: "0",
     });
 
-    await pool.query(
-      "DELETE FROM urls WHERE id = $1",
-      [response.body.id],
-    );
+    await cleanupUrl(response.body.id);
   });
 
   it("rejects an invalid URL", async () => {
