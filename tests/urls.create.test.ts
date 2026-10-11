@@ -54,4 +54,25 @@ describe("POST /api/urls", () => {
 
     expect(response.body.error).toBe("Invalid request body");
   });
+
+  it("rate limits URL creation requests", async () => {
+    const requests = Array.from({ length: 31 }, () =>
+      request(app)
+        .post("/api/urls")
+        .send({ originalUrl: "https://example.com" }),
+    );
+
+    const responses = await Promise.all(requests);
+
+    const rateLimitedResponses = responses.filter(
+      (response) => response.status === 429,
+    );
+
+    expect(rateLimitedResponses.length).toBeGreaterThan(0);
+
+    await pool.query(
+      "DELETE FROM urls WHERE original_url = $1",
+      ["https://example.com"],
+    );
+  });
 });
