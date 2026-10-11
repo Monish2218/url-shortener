@@ -1,10 +1,9 @@
 import app from "./app.js";
+import { config } from "./config.js";
 import pool from "./db.js";
 
-const PORT = process.env.PORT || 3000;
-
-const server = app.listen(PORT, async()=>{
-    console.log(`Server running at http://localhost:${PORT}`);
+const server = app.listen(config.port, async()=>{
+    console.log(`Server running at ${config.baseUrl}`);
 
     try {
         const result = await pool.query("SELECT NOW()");

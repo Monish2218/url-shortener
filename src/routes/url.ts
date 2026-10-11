@@ -5,6 +5,7 @@ import {
   getUrlById,
   deleteUrlById,
 } from "../services/url.service.js";
+import { config } from "../config.js";
 
 const router = Router();
 
@@ -31,7 +32,7 @@ router.post("/", async (req, res) => {
   return res.status(201).json({
     id: url.id,
     shortCode: url.short_code,
-    shortUrl: `http://localhost:3000/${url.short_code}`,
+    shortUrl: `${config.baseUrl}/${url.short_code}`,
     originalUrl: url.original_url,
     createdAt: url.created_at,
     expiresAt: url.expires_at,
@@ -50,7 +51,7 @@ router.get("/:id", async (req, res) => {
   return res.status(200).json({
     id: url.id,
     shortCode: url.short_code,
-    shortUrl: `http://localhost:3000/${url.short_code}`,
+    shortUrl: `${config.baseUrl}/${url.short_code}`,
     originalUrl: url.original_url,
     createdAt: url.created_at,
     expiresAt: url.expires_at,
